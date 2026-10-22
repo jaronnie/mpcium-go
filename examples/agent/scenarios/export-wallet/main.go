@@ -17,7 +17,7 @@ const (
 	natsURL   = "tls://crypto.blockrazor.xyz:4222"
 	natsToken = "REPLACE_NATS_TOKEN"
 	projectID = "REPLACE_PROJECT_ID"
-	// Paste the Base64 encoding of the complete V4 .age credentials bundle.
+	// 粘贴控制台导出的 Base64 凭据。
 	credentialsBase64   = "REPLACE_CREDENTIALS_BASE64"
 	credentialsPassword = "REPLACE_CREDENTIAL_PASSWORD"
 	walletID            = "REPLACE_WALLET_ID"
