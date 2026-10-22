@@ -7,7 +7,7 @@
 SDK 已提交远端；独立业务项目固定到本次版本：
 
 ```sh
-go get github.com/jaronnie/mpcium-go@v0.3.0
+go get github.com/jaronnie/mpcium-go@v0.4.0
 ```
 
 ```go
@@ -23,7 +23,7 @@ credentials, err := client.UnlockCredentials(credentialsPath, password)
 if err != nil { return err }
 defer credentials.Close()
 
-sdk, err := client.ConnectAccess(ctx, natsURL, "", credentials)
+sdk, err := client.ConnectAccess(ctx, natsURL, credentials)
 if err != nil { return err }
 defer sdk.Close()
 ```

@@ -23,15 +23,12 @@ type AccessClient struct {
 	session string
 }
 
-func ConnectAccess(ctx context.Context, address, token string, credentials *Credentials, options ...nats.Option) (*AccessClient, error) {
+func ConnectAccess(ctx context.Context, address string, credentials *Credentials, options ...nats.Option) (*AccessClient, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
-	if credentials != nil && token == "" {
-		token = credentials.AccessToken
-	}
-	if credentials == nil || credentials.Initiator == nil || !newWalletID.MatchString(credentials.ProjectID) || token == "" {
-		return nil, errors.New("project credentials and access token required")
+	if credentials == nil || credentials.Initiator == nil || !newWalletID.MatchString(credentials.ProjectID) || credentials.AccessToken == "" {
+		return nil, errors.New("project credentials with embedded access token required")
 	}
 	u, err := url.Parse(address)
 	if err != nil || u.Scheme != "tls" || u.Hostname() == "" || u.User != nil {
@@ -46,7 +43,7 @@ func ConnectAccess(ctx context.Context, address, token string, credentials *Cred
 		timeout = time.Until(deadline)
 	}
 	opts := append([]nats.Option{nats.Secure(&tls.Config{MinVersion: tls.VersionTLS12})}, options...)
-	opts = append(opts, nats.Name(session), nats.Token(token), nats.CustomInboxPrefix("_INBOX."+session), nats.Timeout(timeout))
+	opts = append(opts, nats.Name(session), nats.Token(credentials.AccessToken), nats.CustomInboxPrefix("_INBOX."+session), nats.Timeout(timeout))
 	nc, err := nats.Connect(address, opts...)
 	if err != nil {
 		return nil, err

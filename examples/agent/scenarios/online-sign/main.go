@@ -61,7 +61,7 @@ func run() error {
 	if credentials.ProjectID != projectID {
 		return errors.New("项目 ID 与凭据不匹配")
 	}
-	sdk, err := client.ConnectAccess(ctx, natsURL, "", credentials)
+	sdk, err := client.ConnectAccess(ctx, natsURL, credentials)
 	if err != nil {
 		return err
 	}

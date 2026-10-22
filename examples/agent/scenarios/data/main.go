@@ -28,7 +28,7 @@ func main() {
 	if credentials.ProjectID != projectID {
 		panic("项目 ID 与凭据不匹配")
 	}
-	sdk := must(mpcium.ConnectAccess(ctx, natsURL, "", credentials))
+	sdk := must(mpcium.ConnectAccess(ctx, natsURL, credentials))
 	defer sdk.Close()
 
 	plaintext := must(sdk.DecryptStoredData(ctx, dataID))
