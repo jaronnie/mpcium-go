@@ -1,5 +1,4 @@
 // Requires the mpcium-go release containing ConnectAccess. The token is inside the encrypted credentials.
-// Edit the constants below, then run: go run main.go
 package main
 
 import (
@@ -32,8 +31,11 @@ func main() {
 	}
 }
 func run() error {
-	if projectID == "REPLACE_PROJECT_ID" || projectCredentialsBase64 == "REPLACE_PROJECT_CREDENTIALS_BASE64" || projectCredentialsPassword == "REPLACE_PROJECT_CREDENTIALS_PASSWORD" {
+	if projectID == "" || projectID == "REPLACE_PROJECT_ID" || projectCredentialsBase64 == "" || projectCredentialsBase64 == "REPLACE_PROJECT_CREDENTIALS_BASE64" || projectCredentialsPassword == "" || projectCredentialsPassword == "REPLACE_PROJECT_CREDENTIALS_PASSWORD" {
 		return errors.New("请提供项目 ID、项目凭据和解锁密码")
+	}
+	if walletID == "" || walletID == "REPLACE_WALLET_ID" {
+		return errors.New("请提供钱包 ID")
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -44,7 +46,7 @@ func run() error {
 	credentials, err := client.UnlockCredentialsBytes(encryptedCredentials, projectCredentialsPassword)
 	clear(encryptedCredentials)
 	if err != nil {
-		return err
+		return fmt.Errorf("解锁项目凭据失败: %w", err)
 	}
 	defer credentials.Close()
 	if credentials.ProjectID != projectID {
@@ -52,7 +54,7 @@ func run() error {
 	}
 	sdk, err := client.ConnectAccess(ctx, natsURL, credentials)
 	if err != nil {
-		return err
+		return fmt.Errorf("连接 MPC 服务失败: %w", err)
 	}
 	defer sdk.Close()
 	logger.Init("production", false)

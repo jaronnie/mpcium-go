@@ -80,7 +80,7 @@ defer client.Close()
 plaintext, err := client.DecryptStoredData(ctx, dataID)
 ```
 
-支持 `CreateWallet(ctx,id)`、`SignTransaction(ctx,msg)`、`EncryptData`、`DecryptData`、`DecryptStoredData`、`ExportWallet`。访问 token 统一从解锁后的 `credentials.AccessToken` 读取，不再提供单独的 token 参数。控制台项目凭据只授权已经登记的资源；资源创建由控制台完成。
+支持 `CreateWallet(ctx,id)`、`SignTransaction(ctx,msg,walletPublicKeyHex)`、`EncryptData`、`DecryptData`、`DecryptStoredData`、`ExportWallet`。访问 token 统一从解锁后的 `credentials.AccessToken` 读取，不再提供单独的 token 参数。控制台项目凭据只授权已经登记的资源；资源创建由控制台完成。
 
 连接和重连时检查来源 IP；收紧规则会阻止旧连接继续访问，新增授权需重连。重新导出控制台凭据会轮换 token。超时不代表签名/创建回滚，请先检查状态，不能自动重试。在线签名由 SDK 使用调用方提供的固定钱包公钥验证，验证失败只返回错误。入口重启或来源 IP 改变后应重新建立客户端。
 

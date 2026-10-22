@@ -5,7 +5,7 @@ go 1.25.8
 require (
 	github.com/ethereum/go-ethereum v1.16.5
 	github.com/google/uuid v1.6.0
-	github.com/jaronnie/mpcium-go v0.4.0
+	github.com/jaronnie/mpcium-go v0.5.0
 	github.com/stretchr/testify v1.11.1
 )
 

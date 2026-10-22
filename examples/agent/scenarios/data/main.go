@@ -51,7 +51,7 @@ func run() error {
 	}
 	sdk, err := mpcium.ConnectAccess(ctx, natsURL, credentials)
 	if err != nil {
-		return fmt.Errorf("连接签名服务失败: %w", err)
+		return fmt.Errorf("连接 MPC 服务失败: %w", err)
 	}
 	defer sdk.Close()
 	plaintext, err := sdk.DecryptStoredData(ctx, keyDataId)

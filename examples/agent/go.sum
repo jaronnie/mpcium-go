@@ -79,6 +79,8 @@ github.com/jaronnie/mpcium-go v0.3.0 h1:5gIX8jdUENuXkS9aSAhKmRccoVKKLmD1/ECG78F0
 github.com/jaronnie/mpcium-go v0.3.0/go.mod h1:LBprdGC9XH16+sj3HCttKOdCvFFCie3kqOjeWYzDZKc=
 github.com/jaronnie/mpcium-go v0.4.0 h1:kfzkcoE0348PG9GRjzDxw9JT2Y18JHKk+Aexhca+Px0=
 github.com/jaronnie/mpcium-go v0.4.0/go.mod h1:LBprdGC9XH16+sj3HCttKOdCvFFCie3kqOjeWYzDZKc=
+github.com/jaronnie/mpcium-go v0.5.0 h1:K2qzOva7xvY6kx2DzXqUDqy+rVFJgWS4WrvhQk9GSR8=
+github.com/jaronnie/mpcium-go v0.5.0/go.mod h1:LBprdGC9XH16+sj3HCttKOdCvFFCie3kqOjeWYzDZKc=
 github.com/jessevdk/go-flags v0.0.0-20141203071132-1679536dcc89/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
 github.com/jrick/logrotate v1.0.0/go.mod h1:LNinyqDIJnpAur+b8yyulnQw/wDuN1+BYKlTRt3OuAQ=
 github.com/kkdai/bstream v0.0.0-20161212061736-f391b8402d23/go.mod h1:J+Gs4SYgM6CZQHDETBtE9HaSEkGmuNXF86RwHhHUvq4=
