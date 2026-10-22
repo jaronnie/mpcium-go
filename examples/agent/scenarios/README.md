@@ -23,4 +23,4 @@ SDK 固定使用远端版本 `v0.5.0`。复制单个 main.go 时，一并保留 
 
 启用 IP 白名单后请重新导出凭据。示例使用 ConnectAccess，访问 token 在 age 密文内，不需要再填写共享 NATS token。
 
-在线签名使用 `SignTransaction(ctx, request, walletPublicKeyHex)`，SDK 内部完成验签、ECDSA low-S 归一化与恢复位校验，成功返回的 `result.Signature` 可直接使用。导出 Solana 钱包使用 `ExportWallet(ctx, walletID, types.KeyTypeEd25519)`，EVM 使用 `types.KeyTypeSecp256k1`。
+钱包交易签名使用 `SignTransaction(ctx, request, walletPublicKeyHex)`，SDK 内部完成验签、ECDSA low-S 归一化与恢复位校验，成功返回的 `result.Signature` 可直接使用。导出 Solana 钱包使用 `ExportWallet(ctx, walletID, types.KeyTypeEd25519)`，EVM 使用 `types.KeyTypeSecp256k1`。

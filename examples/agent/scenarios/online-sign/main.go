@@ -81,6 +81,6 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("在线签名验证通过，未广播\nTxID: %s\nSignature: %x\n", result.TxID, result.Signature)
+	fmt.Printf("钱包交易签名验证通过，未广播\nTxID: %s\nSignature: %x\n", result.TxID, result.Signature)
 	return nil
 }
