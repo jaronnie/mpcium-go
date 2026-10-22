@@ -35,6 +35,7 @@ type MPCClient interface {
 }
 
 type mpcClient struct {
+	accessSession       string
 	nodePublicKeys      map[string]ed25519.PublicKey
 	projectID           string
 	natsConn            *nats.Conn

@@ -19,6 +19,7 @@ const CredentialsVersion = 4
 // CredentialsBundle contains the project identity and trusted node public keys.
 // Connection settings are provided separately to Connect.
 type CredentialsBundle struct {
+	AccessToken        string                       `json:"access_token,omitempty"`
 	Version            int                          `json:"version"`
 	ProjectID          string                       `json:"project_id"`
 	NodePublicKeys     map[string]ed25519.PublicKey `json:"node_public_keys"`
@@ -27,6 +28,7 @@ type CredentialsBundle struct {
 }
 
 type Credentials struct {
+	AccessToken    string
 	ProjectID      string
 	NodePublicKeys map[string]ed25519.PublicKey
 	Initiator      Signer
@@ -88,7 +90,7 @@ func credentialsFromBundle(b CredentialsBundle) (*Credentials, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Credentials{ProjectID: b.ProjectID, NodePublicKeys: cloneSDKNodes(b.NodePublicKeys), Initiator: signer}, nil
+	return &Credentials{AccessToken: b.AccessToken, ProjectID: b.ProjectID, NodePublicKeys: cloneSDKNodes(b.NodePublicKeys), Initiator: signer}, nil
 }
 
 // EncryptCredentialsBytes returns only age ciphertext; it never creates a file.
@@ -184,5 +186,6 @@ func (c *Credentials) Close() {
 		}
 	}
 	c.NodePublicKeys = nil
+	c.AccessToken = ""
 	c.Initiator = nil
 }

@@ -3,7 +3,7 @@
 MPCium 的独立 Go SDK。模块路径 `github.com/jaronnie/mpcium-go`，根包名 `mpcium`。
 
 ```sh
-go get github.com/jaronnie/mpcium-go@v0.2.0
+go get github.com/jaronnie/mpcium-go@v0.3.0
 ```
 
 无需克隆节点仓库，无需 `replace`。Go 版本要求见 `go.mod`。
@@ -32,7 +32,7 @@ client := mpcium.NewMPCClient(opts)
 go run ./examples/create-wallet ./project.age my-new-wallet
 ```
 
-示例会创建钱包，需要连接已授权的 MPCium 集群。仅支持 V4 项目凭据；旧文件需从控制台重新导出。凭据不保存 NATS token、账号密码或客户端证书。
+示例会创建钱包，需要连接已授权的 MPCium 集群。仅支持 V4 项目凭据；旧文件需从控制台重新导出。旧模式凭据不保存 NATS token、账号密码或客户端证书；IP 白名单模式会在 age 密文中保存专属访问 token。
 
 业务示例见 [examples/agent](examples/agent/README.md)：[仅数据解密](examples/agent/scenarios/data/main.go)、[私钥导出](examples/agent/scenarios/export-wallet/main.go)、[在线签名](examples/agent/scenarios/online-sign/main.go)。这些示例使用已发布的 SDK，单独维护 Go module。
 
@@ -67,3 +67,23 @@ go vet ./...
 单元测试不需要线上集群。真实节点联调与单元测试分开执行。
 
 Apache-2.0，见 LICENSE 和 NOTICE。
+
+## IP 白名单入口（v0.3.0）
+
+启用资源 IP 白名单的集群使用独立 NATS BUSINESS 账号。控制台导出的 age 凭据包含资源访问 token，不能再使用旧的共享 token 或 `NewMPCClient`：
+
+```go
+credentials, err := mpcium.UnlockCredentials("project.age", password)
+if err != nil { return err }
+defer credentials.Close()
+client, err := mpcium.ConnectAccess(ctx, natsURL, "", credentials)
+if err != nil { return err }
+defer client.Close()
+plaintext, err := client.DecryptStoredData(ctx, dataID)
+```
+
+支持 `CreateWallet(ctx,id)`、`SignTransaction(ctx,msg)`、`EncryptData`、`DecryptData`、`DecryptStoredData`、`ExportWallet`。CLI 发放的独立资源 token 可通过第三个参数传入。控制台项目凭据只授权已经登记的资源；资源创建由控制台完成。
+
+连接和重连时检查来源 IP；收紧规则会阻止旧连接继续访问，新增授权需重连。重新导出控制台凭据会轮换 token。超时不代表签名/创建回滚，请先检查状态，不能自动重试。在线签名的返回值仍需用固定钱包公钥验证。入口重启或来源 IP 改变后应重新建立客户端。
+
+旧版连接方式仅适用于尚未启用隔离入口的集群。以上隔离模式依赖匹配的 `mpcium-access` 与节点版本。

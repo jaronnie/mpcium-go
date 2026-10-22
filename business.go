@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"filippo.io/age"
@@ -42,6 +43,9 @@ func (c *mpcClient) business(ctx context.Context, operation, id string, data []b
 		return nil, err
 	}
 	inbox := nats.NewInbox()
+	if c.accessSession != "" {
+		inbox = "_INBOX." + c.accessSession + "." + strings.ReplaceAll(uuid.NewString(), "-", "")
+	}
 	sub, err := c.natsConn.SubscribeSync(inbox)
 	if err != nil {
 		return nil, err
@@ -71,7 +75,15 @@ func (c *mpcClient) business(ctx context.Context, operation, id string, data []b
 		return nil, err
 	}
 	for node := range c.nodePublicKeys {
-		if err = c.natsConn.PublishRequest(sdkapi.Subject(node), inbox, encoded); err != nil {
+		subject := sdkapi.Subject(node)
+		if c.accessSession != "" {
+			kind := "key"
+			if operation == "export-wallet" {
+				kind = "wallet"
+			}
+			subject = accessSubject(c.accessSession, c.projectID, kind, id, operation, node)
+		}
+		if err = c.natsConn.PublishRequest(subject, inbox, encoded); err != nil {
 			return nil, err
 		}
 	}
@@ -93,6 +105,25 @@ func (c *mpcClient) business(ctx context.Context, operation, id string, data []b
 		}
 		if err != nil {
 			return nil, fmt.Errorf("SDK node operation (check updated node services): %w", err)
+		}
+		if c.accessSession != "" {
+			data, e := unwrapAccess(msg.Data)
+			if e != nil {
+				// One unavailable node must not abort a valid threshold response.
+				// The entry can deny availability, but cannot forge a node's
+				// signature or make an invalid result satisfy the threshold.
+				if len(msg.Data) > 256*1024 {
+					return nil, e
+				}
+				var denied struct {
+					Node string `json:"node"`
+				}
+				if json.Unmarshal(msg.Data, &denied) == nil && len(c.nodePublicKeys[denied.Node]) != 0 {
+					seen[denied.Node] = true
+				}
+				continue
+			}
+			msg.Data = data
 		}
 		if len(msg.Data) > sdkapi.MaxMessage {
 			continue
