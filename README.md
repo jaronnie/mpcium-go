@@ -90,4 +90,4 @@ plaintext, err := client.DecryptStoredData(ctx, dataID)
 
 ## Agent skill
 
-[mpcium-sdk](skills/mpcium-sdk/SKILL.md) 提供三个可独立运行的 Go 示例、SDK v0.5.0 调用约定和错误排查说明。可将整个 `skills/mpcium-sdk` 目录安装到 agent 的技能目录，使用 `$mpcium-sdk` 调用；示例不包含真实凭据。
+[mpcium-sdk](skills/mpcium-sdk/SKILL.md) 以单个 `SKILL.md` 提供三个场景的调用示例、SDK v0.5.0 接入约定和错误排查说明。将该文件放入 agent 技能目录下的 `mpcium-sdk/SKILL.md`，使用 `$mpcium-sdk` 调用；示例不包含真实凭据。
