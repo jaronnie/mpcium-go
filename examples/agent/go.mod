@@ -5,7 +5,7 @@ go 1.25.8
 require (
 	github.com/ethereum/go-ethereum v1.16.5
 	github.com/google/uuid v1.6.0
-	github.com/jaronnie/mpcium-go v0.1.0
+	github.com/jaronnie/mpcium-go v0.2.0
 	github.com/stretchr/testify v1.11.1
 )
 
@@ -14,7 +14,6 @@ require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	filippo.io/hpke v0.4.0 // indirect
 	github.com/agl/ed25519 v0.0.0-20170116200512-5312a6153412 // indirect
-	github.com/avast/retry-go v3.0.0+incompatible // indirect
 	github.com/aws/aws-sdk-go-v2 v1.41.1 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.32.7 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.7 // indirect

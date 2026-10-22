@@ -7,7 +7,7 @@
 SDK 已提交远端；独立业务项目固定到本次版本：
 
 ```sh
-go get github.com/jaronnie/mpcium-go@v0.1.0
+go get github.com/jaronnie/mpcium-go@v0.2.0
 ```
 
 ```go
