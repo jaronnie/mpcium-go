@@ -1,0 +1,6 @@
+/data/
+/bin/
+*.age
+*.key
+.env
+coverage.out
