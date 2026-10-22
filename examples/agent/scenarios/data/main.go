@@ -1,3 +1,4 @@
+// Requires the mpcium-go release containing ConnectAccess. The token is inside the encrypted credentials.
 package main
 
 import (
@@ -24,10 +25,13 @@ func main() {
 
 	credentials := must(mpcium.UnlockCredentialsBytes(must(base64.StdEncoding.DecodeString(credentialsBase64)), credentialsPassword))
 	defer credentials.Close()
-	opts := must(mpcium.Connect(ctx, natsURL, natsToken, projectID, credentials))
-	defer opts.NatsConn.Close()
+	if credentials.ProjectID != projectID {
+		panic("项目 ID 与凭据不匹配")
+	}
+	sdk := must(mpcium.ConnectAccess(ctx, natsURL, "", credentials))
+	defer sdk.Close()
 
-	plaintext := must(mpcium.NewMPCClient(opts).DecryptStoredData(ctx, dataID))
+	plaintext := must(sdk.DecryptStoredData(ctx, dataID))
 	// 在这里使用 plaintext，不写入文件。
 	fmt.Printf("数据解密成功（%d 字节）\n", len(plaintext))
 }

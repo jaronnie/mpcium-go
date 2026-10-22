@@ -1,13 +1,13 @@
 # MPCium Go SDK 业务示例
 
-客户端直接通过 NATS 访问 MPC 节点。控制台负责创建项目、创建资源和交付凭据，不参与 SDK 运行。私钥导出、数据加解密与在线签名复用同一个 `NewMPCClient` 实例。
+客户端直接通过 NATS 访问 MPC 节点。控制台负责创建项目、创建资源和交付凭据，不参与 SDK 运行。私钥导出、数据加解密与在线签名复用同一个 `ConnectAccess` 客户端。
 
 ## 通过 import 使用
 
 SDK 已提交远端；独立业务项目固定到本次版本：
 
 ```sh
-go get github.com/jaronnie/mpcium-go@v0.2.0
+go get github.com/jaronnie/mpcium-go@v0.3.0
 ```
 
 ```go
@@ -23,14 +23,12 @@ credentials, err := client.UnlockCredentials(credentialsPath, password)
 if err != nil { return err }
 defer credentials.Close()
 
-opts, err := client.Connect(ctx, natsURL, natsToken, projectID, credentials)
+sdk, err := client.ConnectAccess(ctx, natsURL, "", credentials)
 if err != nil { return err }
-defer opts.NatsConn.Close()
-
-sdk := client.NewMPCClient(opts)
+defer sdk.Close()
 ```
 
-连接使用 token 和服务端 TLS，系统 CA 校验域名，不需要客户端证书、私钥、ServerName 或 SSH 隧道。密码只在本地解锁凭据；SDK 自动签署业务请求，节点沿用现有身份签名验证。无需控制台登录、动态码或新的项目授权接口。
+访问 token 随加密凭据交付。连接使用资源凭据和服务端 TLS，系统 CA 校验域名，不需要客户端证书、私钥、ServerName 或 SSH 隧道。密码只在本地解锁凭据；SDK 自动签署业务请求，节点沿用现有身份签名验证。无需控制台登录、动态码或新的项目授权接口。
 
 ## 数据加解密
 

@@ -10,21 +10,19 @@ go get github.com/jaronnie/mpcium-go@v0.3.0
 
 ## 接入
 
-由集群管理员提供加密的 V4 项目凭据、密码，以及 NATS TLS 地址和 token。V4 凭据包含项目身份和可信节点公钥，连接配置单独提供。不要把凭据或密码提交到 Git。
+由集群管理员提供加密的 V4 项目凭据、密码及 NATS TLS 地址。启用 IP 白名单的集群会把专属访问 token 放在 age 密文内；凭据同时包含项目身份和可信节点公钥。不要把凭据或密码提交到 Git。
 
 ```go
 credentials, err := mpcium.UnlockCredentials("project.age", password)
 if err != nil { return err }
 defer credentials.Close()
 
-opts, err := mpcium.Connect(ctx, natsURL, natsToken, credentials.ProjectID, credentials)
+client, err := mpcium.ConnectAccess(ctx, natsURL, "", credentials)
 if err != nil { return err }
-defer opts.NatsConn.Close()
-
-client := mpcium.NewMPCClient(opts)
+defer client.Close()
 ```
 
-完整示例（在此仓库运行）：
+旧共享入口的创建钱包示例（隔离入口由控制台创建资源，业务示例见下方）：
 
 ```sh
 # 设置 NATS_URL（tls:// 域名及端口）、NATS_TOKEN

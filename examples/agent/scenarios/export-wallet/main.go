@@ -1,3 +1,4 @@
+// Requires the mpcium-go release containing ConnectAccess. The token is inside the encrypted credentials.
 // Edit the constants below, then run: go run main.go
 package main
 
@@ -30,7 +31,7 @@ func main() {
 	}
 }
 func run() error {
-	if natsToken == "REPLACE_NATS_TOKEN" || projectID == "REPLACE_PROJECT_ID" || credentialsBase64 == "REPLACE_CREDENTIALS_BASE64" || credentialsPassword == "REPLACE_CREDENTIAL_PASSWORD" {
+	if projectID == "REPLACE_PROJECT_ID" || credentialsBase64 == "REPLACE_CREDENTIALS_BASE64" || credentialsPassword == "REPLACE_CREDENTIAL_PASSWORD" {
 		return errors.New("请先填写 main.go 顶部的 NATS token、项目 ID、凭据 Base64 和解锁密码")
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
@@ -46,13 +47,15 @@ func run() error {
 		return err
 	}
 	defer credentials.Close()
-	opts, err := client.Connect(ctx, natsURL, natsToken, projectID, credentials)
+	if credentials.ProjectID != projectID {
+		return errors.New("项目 ID 与凭据不匹配")
+	}
+	sdk, err := client.ConnectAccess(ctx, natsURL, "", credentials)
 	if err != nil {
 		return err
 	}
-	defer opts.NatsConn.Close()
+	defer sdk.Close()
 	logger.Init("production", false)
-	sdk := client.NewMPCClient(opts)
 	privateScalar, err := sdk.ExportWallet(ctx, walletID)
 	if err != nil {
 		return err
