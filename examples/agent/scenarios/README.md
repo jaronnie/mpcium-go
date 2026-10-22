@@ -7,7 +7,7 @@ cd examples/agent/scenarios/data
 go run main.go
 ```
 
-共同参数：`natsURL`、`natsToken`、`projectID`、`credentialsBase64`、`credentialsPassword`。其中 `credentialsBase64` 为完整 V4 age 凭据包的 Base64 文本，直接在内存中解锁。
+共同参数：`natsURL`、`projectID`、`credentialsBase64`、`credentialsPassword`。其中 `credentialsBase64` 为完整 V4 age 凭据包的 Base64 文本，直接在内存中解锁。
 
 | 目录 | 额外常量 | 行为 |
 | --- | --- | --- |

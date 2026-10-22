@@ -32,7 +32,7 @@ func main() {
 }
 func run() error {
 	if projectID == "REPLACE_PROJECT_ID" || credentialsBase64 == "REPLACE_CREDENTIALS_BASE64" || credentialsPassword == "REPLACE_CREDENTIAL_PASSWORD" {
-		return errors.New("请先填写 main.go 顶部的 NATS token、项目 ID、凭据 Base64 和解锁密码")
+		return errors.New("请先填写 main.go 顶部的 项目 ID、凭据 Base64 和解锁密码（访问 token 已包含在凭据中）")
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
