@@ -87,3 +87,7 @@ plaintext, err := client.DecryptStoredData(ctx, dataID)
 旧版连接方式仅适用于尚未启用隔离入口的集群。以上隔离模式依赖匹配的 `mpcium-access` 与节点版本。
 
 在线签名使用 `SignTransaction(ctx, request, walletPublicKeyHex)`，SDK 内部完成验签、ECDSA low-S 归一化与恢复位校验，成功返回的 `result.Signature` 可直接使用。导出 Solana 钱包使用 `ExportWallet(ctx, walletID, types.KeyTypeEd25519)`，EVM 使用 `types.KeyTypeSecp256k1`。
+
+## Agent skill
+
+[mpcium-sdk](skills/mpcium-sdk/SKILL.md) 提供三个可独立运行的 Go 示例、SDK v0.5.0 调用约定和错误排查说明。可将整个 `skills/mpcium-sdk` 目录安装到 agent 的技能目录，使用 `$mpcium-sdk` 调用；示例不包含真实凭据。

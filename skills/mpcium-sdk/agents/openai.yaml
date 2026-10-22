@@ -1,0 +1,4 @@
+interface:
+  display_name: "MPCium SDK"
+  short_description: "使用 MPCium Go SDK 接入数据解密、钱包导出与在线签名"
+  default_prompt: "使用 $mpcium-sdk，根据指定的钱包或加密 Key 编写最简 Go 调用代码并验证结果。"
