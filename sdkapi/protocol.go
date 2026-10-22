@@ -34,6 +34,7 @@ type Request struct {
 	RequestID  string `json:"request_id"`
 	Operation  string `json:"operation"`
 	ResourceID string `json:"resource_id"`
+	KeyType    string `json:"key_type,omitempty"`
 	Data       []byte `json:"data,omitempty"`
 	Recipient  string `json:"recipient"`
 	Reply      string `json:"reply"`
@@ -55,6 +56,9 @@ func (r *Request) Digest() string {
 func (r *Request) Validate(now time.Time) error {
 	if r.Domain != Domain || !identifier.MatchString(r.ProjectID) || !identifier.MatchString(r.RequestID) || !identifier.MatchString(r.ResourceID) || !inbox.MatchString(r.Reply) || r.ExpiresAt <= now.Unix() || r.ExpiresAt > now.Add(time.Minute).Unix() || len(r.Data) > 48*1024 {
 		return errors.New("invalid SDK request")
+	}
+	if r.KeyType != "" && (r.Operation != "export-wallet" || (r.KeyType != "secp256k1" && r.KeyType != "ed25519")) {
+		return errors.New("invalid wallet key type")
 	}
 	switch r.Operation {
 	case "encryption-key", "decrypt", "decrypt-stored", "export-wallet":

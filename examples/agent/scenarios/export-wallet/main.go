@@ -12,6 +12,7 @@ import (
 
 	client "github.com/jaronnie/mpcium-go"
 	"github.com/jaronnie/mpcium-go/logger"
+	"github.com/jaronnie/mpcium-go/types"
 )
 
 const (
@@ -21,6 +22,7 @@ const (
 	projectCredentialsBase64   = "REPLACE_PROJECT_CREDENTIALS_BASE64"
 	projectCredentialsPassword = "REPLACE_PROJECT_CREDENTIALS_PASSWORD"
 	walletID                   = "REPLACE_WALLET_ID"
+	keyType                    = types.KeyTypeSecp256k1 // Use KeyTypeEd25519 for Solana wallets.
 )
 
 func main() {
@@ -31,14 +33,13 @@ func main() {
 }
 func run() error {
 	if projectID == "REPLACE_PROJECT_ID" || projectCredentialsBase64 == "REPLACE_PROJECT_CREDENTIALS_BASE64" || projectCredentialsPassword == "REPLACE_PROJECT_CREDENTIALS_PASSWORD" {
-		return errors.New("请先填写 main.go 顶部的 项目 ID、凭据 Base64 和解锁密码（访问 token 已包含在凭据中）")
+		return errors.New("请提供项目 ID、项目凭据和解锁密码")
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
-	// No configuration files, environment variables or interactive prompts.
 	encryptedCredentials, err := base64.StdEncoding.DecodeString(projectCredentialsBase64)
 	if err != nil {
-		return fmt.Errorf("decode credentials: %w", err)
+		return fmt.Errorf("解析项目凭据失败: %w", err)
 	}
 	credentials, err := client.UnlockCredentialsBytes(encryptedCredentials, projectCredentialsPassword)
 	clear(encryptedCredentials)
@@ -55,7 +56,7 @@ func run() error {
 	}
 	defer sdk.Close()
 	logger.Init("production", false)
-	privateScalar, err := sdk.ExportWallet(ctx, walletID)
+	privateScalar, err := sdk.ExportWallet(ctx, walletID, keyType)
 	if err != nil {
 		return err
 	}

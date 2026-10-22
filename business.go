@@ -16,6 +16,7 @@ import (
 	"github.com/jaronnie/mpcium-go/configsecret"
 	"github.com/jaronnie/mpcium-go/keyexport"
 	"github.com/jaronnie/mpcium-go/sdkapi"
+	"github.com/jaronnie/mpcium-go/types"
 	"github.com/nats-io/nats.go"
 )
 
@@ -26,7 +27,7 @@ type businessGroup struct {
 	shares map[string]keyexport.Share
 }
 
-func (c *mpcClient) business(ctx context.Context, operation, id string, data []byte) ([]byte, error) {
+func (c *mpcClient) business(ctx context.Context, operation, id string, data []byte, keyTypes ...types.KeyType) ([]byte, error) {
 	if c.natsConn == nil || c.signer == nil {
 		return nil, errors.New("SDK connection and identity required")
 	}
@@ -59,6 +60,12 @@ func (c *mpcClient) business(ctx context.Context, operation, id string, data []b
 	}
 	deadline, _ := ctx.Deadline()
 	request := sdkapi.Request{Domain: sdkapi.Domain, ProjectID: c.projectID, RequestID: uuid.NewString(), Operation: operation, ResourceID: id, Data: data, Recipient: recipient.Recipient().String(), Reply: inbox, ExpiresAt: deadline.Unix()}
+	if len(keyTypes) > 1 {
+		return nil, errors.New("one wallet key type required")
+	}
+	if len(keyTypes) == 1 {
+		request.KeyType = string(keyTypes[0])
+	}
 	if err = request.Validate(time.Now()); err != nil {
 		return nil, err
 	}
@@ -182,7 +189,7 @@ func (c *mpcClient) business(ctx context.Context, operation, id string, data []b
 func (c *mpcClient) validateBusinessResult(r *sdkapi.Request, node string, result sdkapi.Result) (string, int, error) {
 	if r.Operation == "export-wallet" {
 		p := result.Policy
-		if p == nil || result.Share == nil || p.Validate() != nil || p.ProjectID != c.projectID || p.WalletID != r.ResourceID {
+		if p == nil || result.Share == nil || p.Validate() != nil || p.ProjectID != c.projectID || p.WalletID != r.ResourceID || (r.KeyType != "" && string(p.KeyType) != r.KeyType) {
 			return "", 0, errors.New("invalid wallet result")
 		}
 		public, err := c.signer.PublicKey()
@@ -274,6 +281,9 @@ func (c *mpcClient) DecryptStoredData(ctx context.Context, dataID string) ([]byt
 
 // ExportWallet reconstructs the private scalar only on the caller's machine.
 // Ed25519 returns an MPC scalar, not a seed. The caller must clear the result.
-func (c *mpcClient) ExportWallet(ctx context.Context, walletID string) ([]byte, error) {
-	return c.business(ctx, "export-wallet", walletID, nil)
+func (c *mpcClient) ExportWallet(ctx context.Context, walletID string, keyTypes ...types.KeyType) ([]byte, error) {
+	if len(keyTypes) == 0 {
+		keyTypes = []types.KeyType{types.KeyTypeSecp256k1}
+	}
+	return c.business(ctx, "export-wallet", walletID, nil, keyTypes...)
 }

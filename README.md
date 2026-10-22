@@ -3,7 +3,7 @@
 MPCium 的独立 Go SDK。模块路径 `github.com/jaronnie/mpcium-go`，根包名 `mpcium`。
 
 ```sh
-go get github.com/jaronnie/mpcium-go@v0.4.0
+go get github.com/jaronnie/mpcium-go@v0.5.0
 ```
 
 无需克隆节点仓库，无需 `replace`。Go 版本要求见 `go.mod`。
@@ -66,7 +66,7 @@ go vet ./...
 
 Apache-2.0，见 LICENSE 和 NOTICE。
 
-## IP 白名单入口（v0.4.0）
+## IP 白名单入口（v0.5.0）
 
 启用资源 IP 白名单的集群使用独立 NATS BUSINESS 账号。控制台导出的 age 凭据包含资源访问 token，不能再使用旧的共享 token 或 `NewMPCClient`：
 
@@ -82,6 +82,8 @@ plaintext, err := client.DecryptStoredData(ctx, dataID)
 
 支持 `CreateWallet(ctx,id)`、`SignTransaction(ctx,msg)`、`EncryptData`、`DecryptData`、`DecryptStoredData`、`ExportWallet`。访问 token 统一从解锁后的 `credentials.AccessToken` 读取，不再提供单独的 token 参数。控制台项目凭据只授权已经登记的资源；资源创建由控制台完成。
 
-连接和重连时检查来源 IP；收紧规则会阻止旧连接继续访问，新增授权需重连。重新导出控制台凭据会轮换 token。超时不代表签名/创建回滚，请先检查状态，不能自动重试。在线签名的返回值仍需用固定钱包公钥验证。入口重启或来源 IP 改变后应重新建立客户端。
+连接和重连时检查来源 IP；收紧规则会阻止旧连接继续访问，新增授权需重连。重新导出控制台凭据会轮换 token。超时不代表签名/创建回滚，请先检查状态，不能自动重试。在线签名由 SDK 使用调用方提供的固定钱包公钥验证，验证失败只返回错误。入口重启或来源 IP 改变后应重新建立客户端。
 
 旧版连接方式仅适用于尚未启用隔离入口的集群。以上隔离模式依赖匹配的 `mpcium-access` 与节点版本。
+
+在线签名使用 `SignTransaction(ctx, request, walletPublicKeyHex)`，SDK 内部完成验签、ECDSA low-S 归一化与恢复位校验，成功返回的 `result.Signature` 可直接使用。导出 Solana 钱包使用 `ExportWallet(ctx, walletID, types.KeyTypeEd25519)`，EVM 使用 `types.KeyTypeSecp256k1`。

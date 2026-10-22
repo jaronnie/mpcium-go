@@ -7,7 +7,7 @@
 SDK 已提交远端；独立业务项目固定到本次版本：
 
 ```sh
-go get github.com/jaronnie/mpcium-go@v0.4.0
+go get github.com/jaronnie/mpcium-go@v0.5.0
 ```
 
 ```go
@@ -61,19 +61,17 @@ defer clear(privateScalar)
 ## 在线签名
 
 ```go
-err := sdk.OnSignResult(handleSigningResult)
-if err != nil { return err }
-err = sdk.SignTransaction(&types.SignTxMessage{
+result, err := sdk.SignTransaction(ctx, &types.SignTxMessage{
     WalletID: walletID,
     KeyType: types.KeyTypeSecp256k1,
     NetworkInternalCode: "ethereum-mainnet",
     TxID: uuid.NewString(),
     Tx: signingDigest,
-})
+}, walletPublicKeyHex)
 if err != nil { return err }
 ```
 
-保留原有异步签名接口，先订阅再发送。EVM 输入是业务计算的 32 字节摘要；Ed25519 输入是完整消息。示例还会关联请求 ID 并验证签名，不自动广播。
+EVM 输入是业务计算的 32 字节摘要；Ed25519 输入是完整消息。SDK 关联请求 ID 并使用固定钱包公钥验证签名；调用成功后直接使用 `result.Signature`，不自动广播。
 
 ## 配置和三个 main
 
@@ -105,3 +103,5 @@ const (
 节点内的 `pkg/sdkserver` 分为 NATS 传输、业务 Service 和持久化 replay store；身份与资源读取使用节点现有组件。启动入口仅装配依赖。新数据创建时，管理员签名的注册记录包含密文和加密份额，并持久化到各节点；控制台停止后 SDK 仍可运行。请求有签名、有效期和持久化防重放；响应包含节点签名并加密给调用方。
 
 线上节点和控制台已配套更新；本机数据解密示例已直接连接线上节点验证通过。使用 V4 凭据，数据密文须已保存到节点；节点公钥自动封装在凭据中，不要求业务端另行配置。本轮没有在线运行钱包导出或在线签名示例。
+
+在线签名使用 `SignTransaction(ctx, request, walletPublicKeyHex)`，SDK 内部完成验签、ECDSA low-S 归一化与恢复位校验，成功返回的 `result.Signature` 可直接使用。导出 Solana 钱包使用 `ExportWallet(ctx, walletID, types.KeyTypeEd25519)`，EVM 使用 `types.KeyTypeSecp256k1`。

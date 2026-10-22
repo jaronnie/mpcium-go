@@ -79,12 +79,16 @@ func (c *AccessClient) CreateWallet(ctx context.Context, id string) (event.Keyge
 	}
 	return result, nil
 }
-func (c *AccessClient) SignTransaction(ctx context.Context, request *types.SignTxMessage) (event.SigningResultEvent, error) {
+func (c *AccessClient) SignTransaction(ctx context.Context, request *types.SignTxMessage, publicKeyHex string) (event.SigningResultEvent, error) {
 	var result event.SigningResultEvent
 	if request == nil {
 		return result, errors.New("nil signing request")
 	}
+	if err := validateSigningInput(request.KeyType, publicKeyHex, request.Tx); err != nil {
+		return result, err
+	}
 	copy := *request
+	copy.Tx = append([]byte(nil), request.Tx...)
 	if err := bindProject(c.client.projectID, &copy.ProjectID); err != nil {
 		return result, err
 	}
@@ -101,13 +105,14 @@ func (c *AccessClient) SignTransaction(ctx context.Context, request *types.SignT
 		return result, err
 	}
 	if err = json.Unmarshal(data, &result); err != nil {
-		return result, err
+		return event.SigningResultEvent{}, err
 	}
 	if result.WalletID != copy.WalletID || result.TxID != copy.TxID || result.ResultType != event.ResultTypeSuccess {
-		return result, errors.New("wallet signing unsuccessful")
+		return event.SigningResultEvent{}, errors.New("wallet signing unsuccessful")
 	}
-	// Signature verification against the wallet's pinned public key remains the
-	// caller's responsibility, as with the existing OnSignResult API.
+	if err := verifySigningResult(copy.KeyType, publicKeyHex, copy.Tx, &result); err != nil {
+		return event.SigningResultEvent{}, err
+	}
 	return result, nil
 }
 func (c *AccessClient) EncryptData(ctx context.Context, id string, b []byte) ([]byte, error) {
@@ -119,8 +124,8 @@ func (c *AccessClient) DecryptData(ctx context.Context, id string, b []byte) ([]
 func (c *AccessClient) DecryptStoredData(ctx context.Context, id string) ([]byte, error) {
 	return c.client.DecryptStoredData(ctx, id)
 }
-func (c *AccessClient) ExportWallet(ctx context.Context, id string) ([]byte, error) {
-	return c.client.ExportWallet(ctx, id)
+func (c *AccessClient) ExportWallet(ctx context.Context, id string, keyTypes ...types.KeyType) ([]byte, error) {
+	return c.client.ExportWallet(ctx, id, keyTypes...)
 }
 func (c *AccessClient) call(ctx context.Context, kind, id, operation, node string, v any) ([]byte, error) {
 	if !newWalletID.MatchString(id) || !newWalletID.MatchString(node) {
