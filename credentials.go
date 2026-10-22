@@ -13,32 +13,22 @@ import (
 	"github.com/jaronnie/mpcium-go/types"
 )
 
-// CredentialsBundle is provisioned offline and stored only as age ciphertext.
-// InitiatorKey uses the same encoded format as NewLocalSigner's key file.
+// CredentialsVersion is the only supported project credentials format.
+const CredentialsVersion = 4
+
+// CredentialsBundle contains the project identity and trusted node public keys.
+// Connection settings are provided separately to Connect.
 type CredentialsBundle struct {
-	NodePublicKeys     map[string]ed25519.PublicKey `json:"node_public_keys,omitempty"`
-	ProjectID          string                       `json:"project_id,omitempty"`
-	NATSURL            string                       `json:"nats_url,omitempty"`
-	NATSUsername       string                       `json:"nats_username,omitempty"`
-	NATSPassword       string                       `json:"nats_password,omitempty"`
-	NATSCA             []byte                       `json:"nats_ca,omitempty"`
-	NATSClientCert     []byte                       `json:"nats_client_cert,omitempty"`
-	NATSClientKey      []byte                       `json:"nats_client_key,omitempty"`
 	Version            int                          `json:"version"`
-	NATSToken          string                       `json:"nats_token"`
+	ProjectID          string                       `json:"project_id"`
+	NodePublicKeys     map[string]ed25519.PublicKey `json:"node_public_keys"`
 	InitiatorAlgorithm types.EventInitiatorKeyType  `json:"initiator_algorithm"`
 	InitiatorKey       []byte                       `json:"initiator_key"`
 }
+
 type Credentials struct {
-	NodePublicKeys map[string]ed25519.PublicKey
 	ProjectID      string
-	NATSURL        string
-	NATSUsername   string
-	NATSPassword   string
-	NATSCA         []byte
-	NATSClientCert []byte
-	NATSClientKey  []byte
-	NATSToken      string
+	NodePublicKeys map[string]ed25519.PublicKey
 	Initiator      Signer
 }
 
@@ -82,35 +72,23 @@ func UnlockCredentialsBytes(encrypted []byte, password string) (*Credentials, er
 		return nil, err
 	}
 	defer clear(b.InitiatorKey)
-	defer clear(b.NATSClientKey)
 	return credentialsFromBundle(b)
 }
 func credentialsFromBundle(b CredentialsBundle) (*Credentials, error) {
-	if b.Version != 1 && b.Version != 2 && b.Version != 3 && b.Version != 4 {
-		return nil, errors.New("unsupported credentials bundle version")
+	if b.Version != CredentialsVersion {
+		return nil, errors.New("only V4 project credentials are supported; export a new bundle from the console")
 	}
-	if b.Version == 1 && b.NATSToken == "" {
-		return nil, errors.New("empty NATS token")
+	if b.ProjectID == "" {
+		return nil, errors.New("project ID is required")
 	}
-	// V3 stores only the project identity; NATS uses the application connection.
-	if (b.Version == 3 || b.Version == 4) && (b.ProjectID == "" || b.NATSToken != "" || b.NATSURL != "" || b.NATSUsername != "" || b.NATSPassword != "" || len(b.NATSCA)+len(b.NATSClientCert)+len(b.NATSClientKey) != 0) {
-		return nil, errors.New("identity bundle requires project ID and separate NATS configuration")
-	}
-	if b.Version == 2 {
-		if err := validateTransport(b); err != nil {
-			return nil, err
-		}
-	}
-	if b.Version == 4 {
-		if err := validateSDKNodes(b.NodePublicKeys); err != nil {
-			return nil, err
-		}
+	if err := validateSDKNodes(b.NodePublicKeys); err != nil {
+		return nil, err
 	}
 	signer, err := newMemorySigner(b.InitiatorAlgorithm, b.InitiatorKey)
 	if err != nil {
 		return nil, err
 	}
-	return &Credentials{NodePublicKeys: cloneSDKNodes(b.NodePublicKeys), NATSToken: b.NATSToken, Initiator: signer, ProjectID: b.ProjectID, NATSURL: b.NATSURL, NATSUsername: b.NATSUsername, NATSPassword: b.NATSPassword, NATSCA: bytes.Clone(b.NATSCA), NATSClientCert: bytes.Clone(b.NATSClientCert), NATSClientKey: bytes.Clone(b.NATSClientKey)}, nil
+	return &Credentials{ProjectID: b.ProjectID, NodePublicKeys: cloneSDKNodes(b.NodePublicKeys), Initiator: signer}, nil
 }
 
 // EncryptCredentialsBytes returns only age ciphertext; it never creates a file.
@@ -207,10 +185,4 @@ func (c *Credentials) Close() {
 	}
 	c.NodePublicKeys = nil
 	c.Initiator = nil
-	c.NATSToken = ""
-	c.NATSPassword = ""
-	clear(c.NATSClientKey)
-	c.NATSClientKey = nil
-	c.NATSCA = nil
-	c.NATSClientCert = nil
 }
