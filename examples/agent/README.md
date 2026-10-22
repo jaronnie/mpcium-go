@@ -34,14 +34,14 @@ defer sdk.Close()
 
 ```go
 // 读取创建数据时保存在节点的原始密文并解密。
-plain, err := sdk.DecryptStoredData(ctx, dataID)
+plain, err := sdk.DecryptStoredData(ctx, keyDataId)
 if err != nil { return err }
 defer clear(plain)
 
 // 用同一数据密钥保护新的业务内容；密文由业务保存。
-ciphertext, err := sdk.EncryptData(ctx, dataID, []byte("database password"))
+ciphertext, err := sdk.EncryptData(ctx, keyDataId, []byte("database password"))
 if err != nil { return err }
-restored, err := sdk.DecryptData(ctx, dataID, ciphertext)
+restored, err := sdk.DecryptData(ctx, keyDataId, ciphertext)
 if err != nil { return err }
 defer clear(restored)
 ```
@@ -90,13 +90,13 @@ const (
     natsURL = "tls://crypto.blockrazor.xyz:4222"
     natsToken = "REPLACE_NATS_TOKEN"
     projectID = "REPLACE_PROJECT_ID"
-    credentialsBase64 = "REPLACE_CREDENTIALS_BASE64"
-    credentialsPassword = "REPLACE_CREDENTIAL_PASSWORD"
-    dataID = "REPLACE_DATA_ID"
+    projectCredentialsBase64 = "REPLACE_PROJECT_CREDENTIALS_BASE64"
+    projectCredentialsPassword = "REPLACE_PROJECT_CREDENTIALS_PASSWORD"
+    keyDataId = "REPLACE_KEY_DATA_ID"
 )
 ```
 
-`credentialsBase64` 是完整 V4 `.age` 包的 Base64 文本，示例用 `base64.StdEncoding.DecodeString` 和 `client.UnlockCredentialsBytes` 在内存中解锁。节点验证公钥已封装在凭据里，业务无需填写节点、manifest 或 policy。私钥导出示例只在内存中使用结果；在线签名示例直接对代码中的测试消息签名并验证，不组装或广播交易。
+`projectCredentialsBase64` 是完整 V4 `.age` 包的 Base64 文本，示例用 `base64.StdEncoding.DecodeString` 和 `client.UnlockCredentialsBytes` 在内存中解锁。节点验证公钥已封装在凭据里，业务无需填写节点、manifest 或 policy。私钥导出示例只在内存中使用结果；在线签名示例直接对代码中的测试消息签名并验证，不组装或广播交易。
 
 仓库和通用 ZIP 使用占位常量；真实凭据、token 和密码只写入本机专用代码，不提交远端。
 

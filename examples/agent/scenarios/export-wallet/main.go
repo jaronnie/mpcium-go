@@ -18,9 +18,9 @@ const (
 	natsURL   = "tls://crypto.blockrazor.xyz:4222"
 	projectID = "REPLACE_PROJECT_ID"
 	// 粘贴控制台导出的 Base64 凭据。
-	credentialsBase64   = "REPLACE_CREDENTIALS_BASE64"
-	credentialsPassword = "REPLACE_CREDENTIAL_PASSWORD"
-	walletID            = "REPLACE_WALLET_ID"
+	projectCredentialsBase64   = "REPLACE_PROJECT_CREDENTIALS_BASE64"
+	projectCredentialsPassword = "REPLACE_PROJECT_CREDENTIALS_PASSWORD"
+	walletID                   = "REPLACE_WALLET_ID"
 )
 
 func main() {
@@ -30,17 +30,17 @@ func main() {
 	}
 }
 func run() error {
-	if projectID == "REPLACE_PROJECT_ID" || credentialsBase64 == "REPLACE_CREDENTIALS_BASE64" || credentialsPassword == "REPLACE_CREDENTIAL_PASSWORD" {
+	if projectID == "REPLACE_PROJECT_ID" || projectCredentialsBase64 == "REPLACE_PROJECT_CREDENTIALS_BASE64" || projectCredentialsPassword == "REPLACE_PROJECT_CREDENTIALS_PASSWORD" {
 		return errors.New("请先填写 main.go 顶部的 项目 ID、凭据 Base64 和解锁密码（访问 token 已包含在凭据中）")
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	// No configuration files, environment variables or interactive prompts.
-	encryptedCredentials, err := base64.StdEncoding.DecodeString(credentialsBase64)
+	encryptedCredentials, err := base64.StdEncoding.DecodeString(projectCredentialsBase64)
 	if err != nil {
 		return fmt.Errorf("decode credentials: %w", err)
 	}
-	credentials, err := client.UnlockCredentialsBytes(encryptedCredentials, credentialsPassword)
+	credentials, err := client.UnlockCredentialsBytes(encryptedCredentials, projectCredentialsPassword)
 	clear(encryptedCredentials)
 	if err != nil {
 		return err

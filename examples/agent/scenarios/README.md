@@ -7,11 +7,11 @@ cd examples/agent/scenarios/data
 go run main.go
 ```
 
-共同参数：`natsURL`、`projectID`、`credentialsBase64`、`credentialsPassword`。其中 `credentialsBase64` 为完整 V4 age 凭据包的 Base64 文本，直接在内存中解锁。
+共同参数：`natsURL`、`projectID`、`projectCredentialsBase64`、`projectCredentialsPassword`。其中 `projectCredentialsBase64` 为完整 V4 age 凭据包的 Base64 文本，直接在内存中解锁。
 
 | 目录 | 额外常量 | 行为 |
 | --- | --- | --- |
-| `data` | `dataID` | 仅解密节点保存的数据；不打印明文、不改原记录。 |
+| `data` | `keyDataId` | 仅解密节点保存的数据；不打印明文、不改原记录。 |
 | `export-wallet` | `walletID` | 将 32 字节私钥标量返回到本地变量，验证长度；不打印私钥、不写文件。 |
 | `online-sign` | `walletID`、`walletPublicKeyHex`、`keyType`、`network`、`testMessage` | EVM 对测试消息的 Keccak256 摘要签名；Ed25519 对完整消息签名。验证并显示签名，不广播。 |
 

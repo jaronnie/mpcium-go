@@ -11,18 +11,18 @@ import (
 )
 
 const (
-	natsURL             = "tls://crypto.blockrazor.xyz:4222"
-	projectID           = "REPLACE_PROJECT_ID"
-	credentialsBase64   = "REPLACE_CREDENTIALS_BASE64"
-	credentialsPassword = "REPLACE_CREDENTIAL_PASSWORD"
-	dataID              = "REPLACE_DATA_ID"
+	natsURL                    = "tls://crypto.blockrazor.xyz:4222"
+	projectID                  = "REPLACE_PROJECT_ID"
+	projectCredentialsBase64   = "REPLACE_PROJECT_CREDENTIALS_BASE64"
+	projectCredentialsPassword = "REPLACE_PROJECT_CREDENTIALS_PASSWORD"
+	keyDataId                  = "REPLACE_KEY_DATA_ID"
 )
 
 func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
-	credentials := must(mpcium.UnlockCredentialsBytes(must(base64.StdEncoding.DecodeString(credentialsBase64)), credentialsPassword))
+	credentials := must(mpcium.UnlockCredentialsBytes(must(base64.StdEncoding.DecodeString(projectCredentialsBase64)), projectCredentialsPassword))
 	defer credentials.Close()
 	if credentials.ProjectID != projectID {
 		panic("项目 ID 与凭据不匹配")
@@ -30,7 +30,7 @@ func main() {
 	sdk := must(mpcium.ConnectAccess(ctx, natsURL, credentials))
 	defer sdk.Close()
 
-	plaintext := must(sdk.DecryptStoredData(ctx, dataID))
+	plaintext := must(sdk.DecryptStoredData(ctx, keyDataId))
 	// 在这里使用 plaintext，不写入文件。
 	fmt.Printf("数据解密成功（%d 字节）\n", len(plaintext))
 }
