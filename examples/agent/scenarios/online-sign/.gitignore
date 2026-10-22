@@ -1,0 +1,7 @@
+config.json
+manifest.json
+export-policy.json
+wallet.json
+message.bin
+*.age
+signature.json

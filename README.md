@@ -34,6 +34,8 @@ go run ./examples/create-wallet ./project.age my-new-wallet
 
 示例会创建钱包，需要连接已授权的 MPCium 集群。V1 凭据可自行配置 NATS 连接；V2 凭据保留 `credentials.ConnectNATS` 兼容接口。
 
+业务示例见 [examples/agent](examples/agent/README.md)：[仅数据解密](examples/agent/scenarios/data/main.go)、[私钥导出](examples/agent/scenarios/export-wallet/main.go)、[在线签名](examples/agent/scenarios/online-sign/main.go)。这些示例使用已发布的 SDK，单独维护 Go module。
+
 ## 能力
 
 - `CreateWallet` / `OnWalletCreationResult`：创建钱包并接收异步结果。

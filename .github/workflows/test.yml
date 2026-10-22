@@ -14,3 +14,15 @@ jobs:
       - run: go mod download
       - run: go vet ./...
       - run: go test -race ./...
+  examples:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: examples/agent/go.mod
+          cache-dependency-path: examples/agent/go.sum
+      - run: go test ./...
+        working-directory: examples/agent
+      - run: go vet ./...
+        working-directory: examples/agent
