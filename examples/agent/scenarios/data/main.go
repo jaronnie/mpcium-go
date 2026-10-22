@@ -12,7 +12,6 @@ import (
 
 const (
 	natsURL             = "tls://crypto.blockrazor.xyz:4222"
-	natsToken           = "REPLACE_NATS_TOKEN"
 	projectID           = "REPLACE_PROJECT_ID"
 	credentialsBase64   = "REPLACE_CREDENTIALS_BASE64"
 	credentialsPassword = "REPLACE_CREDENTIAL_PASSWORD"

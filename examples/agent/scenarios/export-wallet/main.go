@@ -16,7 +16,6 @@ import (
 
 const (
 	natsURL   = "tls://crypto.blockrazor.xyz:4222"
-	natsToken = "REPLACE_NATS_TOKEN"
 	projectID = "REPLACE_PROJECT_ID"
 	// 粘贴控制台导出的 Base64 凭据。
 	credentialsBase64   = "REPLACE_CREDENTIALS_BASE64"
