@@ -16,7 +16,6 @@ import (
 	"filippo.io/age"
 	"github.com/jaronnie/mpcium-go/configsecret"
 	"github.com/jaronnie/mpcium-go/keyexport"
-	"github.com/jaronnie/mpcium-go/types"
 )
 
 const Domain = "mpcium/sdk-business/v1"
@@ -42,22 +41,10 @@ type Request struct {
 	Signature  []byte `json:"signature,omitempty"`
 }
 
-func (r *Request) Raw() ([]byte, error)                                 { c := *r; c.Signature = nil; return json.Marshal(c) }
-func (r *Request) Sig() []byte                                          { return r.Signature }
-func (r *Request) InitiatorID() string                                  { return r.ProjectID }
-func (r *Request) GetAuthorizerSignatures() []types.AuthorizerSignature { return nil }
-func (r *Request) GetProjectID() string                                 { return r.ProjectID }
-func (r *Request) GetWalletID() string {
-	if r.Operation == "export-wallet" {
-		return r.ResourceID
-	}
-	return ""
-}
-func (r *Request) GetOperation() string {
-	if r.Operation == "export-wallet" {
-		return "export"
-	}
-	return "decrypt"
+func (r *Request) Raw() ([]byte, error) {
+	c := *r
+	c.Signature = nil
+	return json.Marshal(c)
 }
 func (r *Request) Digest() string {
 	b, _ := r.Raw()
@@ -65,11 +52,6 @@ func (r *Request) Digest() string {
 	return hex.EncodeToString(h[:])
 }
 
-// SecretRequest deliberately wraps only data operations: wallet exports must
-// pass wallet namespace checks rather than the SecretMessage permission path.
-type SecretRequest struct{ *Request }
-
-func (r SecretRequest) GetSecretKeyID() string { return r.ResourceID }
 func (r *Request) Validate(now time.Time) error {
 	if r.Domain != Domain || !identifier.MatchString(r.ProjectID) || !identifier.MatchString(r.RequestID) || !identifier.MatchString(r.ResourceID) || !inbox.MatchString(r.Reply) || r.ExpiresAt <= now.Unix() || r.ExpiresAt > now.Add(time.Minute).Unix() || len(r.Data) > 48*1024 {
 		return errors.New("invalid SDK request")
@@ -113,29 +95,6 @@ type Result struct {
 	Error    string                 `json:"error,omitempty"`
 }
 
-func Encrypt(recipient string, v Result) ([]byte, error) {
-	r, err := age.ParseX25519Recipient(recipient)
-	if err != nil {
-		return nil, err
-	}
-	raw, err := json.Marshal(v)
-	if err != nil {
-		return nil, err
-	}
-	defer clear(raw)
-	var out bytes.Buffer
-	w, err := age.Encrypt(&out, r)
-	if err != nil {
-		return nil, err
-	}
-	if _, err = w.Write(raw); err != nil {
-		return nil, err
-	}
-	if err = w.Close(); err != nil {
-		return nil, err
-	}
-	return out.Bytes(), nil
-}
 func Decrypt(identity *age.X25519Identity, b []byte) (Result, error) {
 	var result Result
 	if len(b) > MaxMessage {

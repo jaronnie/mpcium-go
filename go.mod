@@ -4,7 +4,6 @@ go 1.25.8
 
 require (
 	filippo.io/age v1.3.1
-	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/aws/aws-sdk-go-v2/config v1.32.7
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.7
 	github.com/aws/aws-sdk-go-v2/service/kms v1.49.5

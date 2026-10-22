@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/ed25519"
 	"crypto/rand"
+	"encoding/json"
 	"filippo.io/age"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -17,7 +18,7 @@ func TestSignedEncryptedReplies(t *testing.T) {
 	require.NoError(t, err)
 	r := Request{Domain: Domain, ProjectID: "p", ResourceID: "data", RequestID: "request1", Operation: "decrypt-stored", Recipient: recipient.Recipient().String(), Reply: "_INBOX.test", ExpiresAt: time.Now().Add(30 * time.Second).Unix()}
 	require.NoError(t, r.Validate(time.Now()))
-	encrypted, err := Encrypt(r.Recipient, Result{Error: "test-sensitive-result"})
+	encrypted, err := encryptResult(r.Recipient, Result{Error: "test-sensitive-result"})
 	require.NoError(t, err)
 	require.False(t, bytes.Contains(encrypted, []byte("test-sensitive-result")))
 	response := Response{Domain: Domain, NodeID: "node1", Digest: r.Digest(), Ciphertext: encrypted}
@@ -39,4 +40,28 @@ func TestSignedEncryptedReplies(t *testing.T) {
 	require.Error(t, r.Validate(time.Now()))
 	r.ExpiresAt = time.Now().Add(time.Hour).Unix()
 	require.Error(t, r.Validate(time.Now()))
+}
+
+func encryptResult(recipient string, v Result) ([]byte, error) {
+	r, err := age.ParseX25519Recipient(recipient)
+	if err != nil {
+		return nil, err
+	}
+	raw, err := json.Marshal(v)
+	if err != nil {
+		return nil, err
+	}
+	defer clear(raw)
+	var out bytes.Buffer
+	w, err := age.Encrypt(&out, r)
+	if err != nil {
+		return nil, err
+	}
+	if _, err = w.Write(raw); err != nil {
+		return nil, err
+	}
+	if err = w.Close(); err != nil {
+		return nil, err
+	}
+	return out.Bytes(), nil
 }
