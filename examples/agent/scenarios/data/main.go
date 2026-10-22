@@ -28,7 +28,6 @@ func main() {
 	defer opts.NatsConn.Close()
 
 	plaintext := must(mpcium.NewMPCClient(opts).DecryptStoredData(ctx, dataID))
-	defer clear(plaintext)
 	// 在这里使用 plaintext，不写入文件。
 	fmt.Printf("数据解密成功（%d 字节）\n", len(plaintext))
 }
