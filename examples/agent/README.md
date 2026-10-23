@@ -107,4 +107,4 @@ const (
 钱包交易签名使用 `SignTransaction(ctx, request, walletPublicKeyHex)`，SDK 内部完成验签、ECDSA low-S 归一化与恢复位校验，成功返回的 `result.Signature` 可直接使用。导出 Solana 钱包使用 `ExportWallet(ctx, walletID, types.KeyTypeEd25519)`，EVM 使用 `types.KeyTypeSecp256k1`。
 
 
-标准兼容模式的 Solana 钱包使用 `ExportSolanaKeypair(ctx, walletID)`，返回 64 字节完整私钥，Base58 编码后用于钱包的私钥导入。纯 MPC 模式继续使用 `ExportWallet(ctx, walletID, types.KeyTypeEd25519)`，返回 32 字节标量。导出示例用 `solanaMode` 选择两种模式；EVM 不使用该选项。
+标准兼容模式的 Solana 钱包使用 `ExportSolanaKeypair(ctx, walletID)`，返回 64 字节完整私钥，Base58 编码后用于钱包的私钥导入。纯 MPC 模式继续使用 `ExportWallet(ctx, walletID, types.KeyTypeEd25519)`，返回 32 字节标量。导出示例仅按 `keyType` 区分 EVM 与 Solana，Solana 固定使用标准兼容模式，无需配置 `solanaMode`。

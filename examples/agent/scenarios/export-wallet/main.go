@@ -22,7 +22,6 @@ const (
 	projectCredentialsPassword = "REPLACE_PROJECT_CREDENTIALS_PASSWORD"
 	walletID                   = "REPLACE_WALLET_ID"
 	keyType                    = types.KeyTypeSecp256k1 // Use KeyTypeEd25519 for Solana wallets.
-	solanaMode                 = "standard"             // standard or mpc; ignored for EVM.
 )
 
 func main() {
@@ -62,13 +61,14 @@ func run() error {
 
 	var privateKey []byte
 	expectedLength := 32
-	if keyType == types.KeyTypeEd25519 && solanaMode == "standard" {
+	switch keyType {
+	case types.KeyTypeEd25519:
 		privateKey, err = sdk.ExportSolanaKeypair(ctx, walletID)
 		expectedLength = 64
-	} else if keyType != types.KeyTypeEd25519 || solanaMode == "mpc" {
+	case types.KeyTypeSecp256k1:
 		privateKey, err = sdk.ExportWallet(ctx, walletID, keyType)
-	} else {
-		return errors.New("请选择 standard 或 mpc 模式")
+	default:
+		return errors.New("unsupported wallet key type")
 	}
 	if err != nil {
 		return err
@@ -77,7 +77,7 @@ func run() error {
 	if len(privateKey) != expectedLength {
 		return fmt.Errorf("unexpected private key length: %d", len(privateKey))
 	}
-	// Standard Solana returns seed+public-key bytes; pure MPC returns scalar bytes.
+	// Solana returns a standard 64-byte keypair; EVM returns a 32-byte private key.
 	fmt.Printf("钱包私钥导出成功（%d 字节，不打印私钥、不写文件）\n", len(privateKey))
 	return nil
 }
