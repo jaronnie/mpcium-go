@@ -22,6 +22,7 @@ const (
 	projectCredentialsPassword = "REPLACE_PROJECT_CREDENTIALS_PASSWORD"
 	walletID                   = "REPLACE_WALLET_ID"
 	keyType                    = types.KeyTypeSecp256k1 // Use KeyTypeEd25519 for Solana wallets.
+	solanaMode                 = "standard"             // standard or mpc; ignored for EVM.
 )
 
 func main() {
@@ -58,16 +59,25 @@ func run() error {
 	}
 	defer sdk.Close()
 	logger.Init("production", false)
-	privateScalar, err := sdk.ExportWallet(ctx, walletID, keyType)
+
+	var privateKey []byte
+	expectedLength := 32
+	if keyType == types.KeyTypeEd25519 && solanaMode == "standard" {
+		privateKey, err = sdk.ExportSolanaKeypair(ctx, walletID)
+		expectedLength = 64
+	} else if keyType != types.KeyTypeEd25519 || solanaMode == "mpc" {
+		privateKey, err = sdk.ExportWallet(ctx, walletID, keyType)
+	} else {
+		return errors.New("请选择 standard 或 mpc 模式")
+	}
 	if err != nil {
 		return err
 	}
-	defer clear(privateScalar)
-	if len(privateScalar) != 32 {
-		return fmt.Errorf("unexpected private scalar length: %d", len(privateScalar))
+	defer clear(privateKey)
+	if len(privateKey) != expectedLength {
+		return fmt.Errorf("unexpected private key length: %d", len(privateKey))
 	}
-	// Use privateScalar in your own signing code here. For Ed25519 it is an MPC
-	// scalar, not a seed. The SDK verifies it against the wallet public key.
-	fmt.Printf("钱包私钥导出成功（%d 字节，不打印私钥、不写文件）\n", len(privateScalar))
+	// Standard Solana returns seed+public-key bytes; pure MPC returns scalar bytes.
+	fmt.Printf("钱包私钥导出成功（%d 字节，不打印私钥、不写文件）\n", len(privateKey))
 	return nil
 }

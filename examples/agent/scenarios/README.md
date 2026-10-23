@@ -17,7 +17,7 @@ go run main.go
 
 示例无需节点配置、manifest、policy、SSH 隧道或客户端证书。Ed25519 导出值是 MPC 标量，不是普通钱包 seed。
 
-SDK 固定使用远端版本 `v0.5.0`。复制单个 main.go 时，一并保留 `go.mod` 与 `go.sum`；不需要其他示例源码。本目录包含三个 main、文档和 Go module，不包含真实秘密。
+SDK 固定使用远端版本 `v0.6.0`。复制单个 main.go 时，一并保留 `go.mod` 与 `go.sum`；不需要其他示例源码。本目录包含三个 main、文档和 Go module，不包含真实秘密。
 
 线上节点和控制台已配套更新；Mac 上已直接通过公网 NATS 验证解密成功。使用当前项目导出的 V4 凭据及节点上保存的密文。数据解密入口为 `data/main.go`，明文只保留在内存变量中。
 

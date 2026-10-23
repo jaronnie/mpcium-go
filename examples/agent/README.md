@@ -7,7 +7,7 @@
 SDK 已提交远端；独立业务项目固定到本次版本：
 
 ```sh
-go get github.com/jaronnie/mpcium-go@v0.5.0
+go get github.com/jaronnie/mpcium-go@v0.6.0
 ```
 
 ```go
@@ -105,3 +105,6 @@ const (
 线上节点和控制台已配套更新；本机数据解密示例已直接连接线上节点验证通过。使用 V4 凭据，数据密文须已保存到节点；节点公钥自动封装在凭据中，不要求业务端另行配置。本机已逐项运行数据解密、EVM/Solana 私钥导出和钱包交易签名，且核对解密内容和导出公钥；测试签名未广播。
 
 钱包交易签名使用 `SignTransaction(ctx, request, walletPublicKeyHex)`，SDK 内部完成验签、ECDSA low-S 归一化与恢复位校验，成功返回的 `result.Signature` 可直接使用。导出 Solana 钱包使用 `ExportWallet(ctx, walletID, types.KeyTypeEd25519)`，EVM 使用 `types.KeyTypeSecp256k1`。
+
+
+标准兼容模式的 Solana 钱包使用 `ExportSolanaKeypair(ctx, walletID)`，返回 64 字节完整私钥，Base58 编码后用于钱包的私钥导入。纯 MPC 模式继续使用 `ExportWallet(ctx, walletID, types.KeyTypeEd25519)`，返回 32 字节标量。导出示例用 `solanaMode` 选择两种模式；EVM 不使用该选项。

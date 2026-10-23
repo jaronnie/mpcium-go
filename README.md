@@ -3,7 +3,7 @@
 MPCium 的独立 Go SDK。模块路径 `github.com/jaronnie/mpcium-go`，根包名 `mpcium`。
 
 ```sh
-go get github.com/jaronnie/mpcium-go@v0.5.0
+go get github.com/jaronnie/mpcium-go@v0.6.0
 ```
 
 无需克隆节点仓库，无需 `replace`。Go 版本要求见 `go.mod`。
@@ -66,7 +66,7 @@ go vet ./...
 
 Apache-2.0，见 LICENSE 和 NOTICE。
 
-## IP 白名单入口（v0.5.0）
+## IP 白名单入口（v0.6.0）
 
 启用资源 IP 白名单的集群使用独立 NATS BUSINESS 账号。控制台导出的 age 凭据包含资源访问 token，不能再使用旧的共享 token 或 `NewMPCClient`：
 
@@ -90,7 +90,7 @@ plaintext, err := client.DecryptStoredData(ctx, dataID)
 
 ## Agent skill
 
-[mpcium-sdk](skills/mpcium-sdk/SKILL.md) 以单个 `SKILL.md` 提供三个场景的调用示例、SDK v0.5.0 接入约定和错误排查说明。将该文件放入 agent 技能目录下的 `mpcium-sdk/SKILL.md`，使用 `$mpcium-sdk` 调用；示例不包含真实凭据。
+[mpcium-sdk](skills/mpcium-sdk/SKILL.md) 以单个 `SKILL.md` 提供三个场景的调用示例、SDK v0.6.0 接入约定和错误排查说明。将该文件放入 agent 技能目录下的 `mpcium-sdk/SKILL.md`，使用 `$mpcium-sdk` 调用；示例不包含真实凭据。
 
 
 ### Standard Solana wallets (v0.6.0)
