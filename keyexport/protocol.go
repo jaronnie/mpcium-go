@@ -109,6 +109,8 @@ func (r *Request) Validate(now time.Time) error {
 
 // Share contains only recovery material, never auxiliary Paillier secrets.
 type Share struct {
+	SeedShare     []byte `json:"seed_share,omitempty"`
+	SeedEnvelope  []byte `json:"seed_envelope,omitempty"`
 	RequestDigest string `json:"request_digest"`
 	NodeID        string `json:"node_id"`
 	ID            []byte `json:"id"`

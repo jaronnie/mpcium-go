@@ -166,3 +166,7 @@ func unwrapAccess(b []byte) ([]byte, error) {
 	}
 	return r.Data, nil
 }
+
+func (c *AccessClient) ExportSolanaKeypair(ctx context.Context, walletID string) ([]byte, error) {
+	return c.client.ExportSolanaKeypair(ctx, walletID)
+}

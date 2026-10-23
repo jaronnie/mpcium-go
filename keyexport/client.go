@@ -28,6 +28,7 @@ type Signer interface {
 // Options must be pinned in trusted business configuration, not read from an
 // unauthenticated Consul/NATS reply. NodePublicKeys maps node IDs to Ed25519 keys.
 type Options struct {
+	SolanaKeypair  bool
 	Policy         Policy
 	NodePublicKeys map[string]ed25519.PublicKey
 }
@@ -99,6 +100,13 @@ func ExportPrivateKey(ctx context.Context, nc *nats.Conn, signer Signer, opts Op
 	seen := map[string]bool{}
 	ids := map[string]bool{}
 	responded := map[string]bool{}
+	seedParts := map[string]Share{}
+	defer func() {
+		for _, part := range seedParts {
+			clear(part.Value)
+			clear(part.SeedShare)
+		}
+	}()
 	defer func() {
 		for _, s := range shares {
 			s.Share.SetInt64(0)
@@ -106,8 +114,11 @@ func ExportPrivateKey(ctx context.Context, nc *nats.Conn, signer Signer, opts Op
 	}()
 	digest := request.Digest()
 	curve := Curve(opts.Policy.KeyType)
-	for len(shares) < opts.Policy.Threshold {
+	for len(shares) < opts.Policy.Threshold || (opts.SolanaKeypair && len(responded) < len(opts.Policy.Participants)) {
 		msg, e := sub.NextMsgWithContext(ctx)
+		if errors.Is(e, nats.ErrNoResponders) {
+			continue
+		}
 		if e != nil {
 			return nil, fmt.Errorf("export received %d/%d valid shares: %w", len(shares), opts.Policy.Threshold, e)
 		}
@@ -125,16 +136,27 @@ func ExportPrivateKey(ctx context.Context, nc *nats.Conn, signer Signer, opts Op
 		if response.Error == "" {
 			share, e := decryptShare(identity, response.Ciphertext)
 			if e == nil {
+				defer clear(share.SeedShare)
 				id := new(big.Int).SetBytes(share.ID)
 				id.Mod(id, curve.Params().N)
 				expectedID := new(big.Int).SetBytes([]byte(response.NodeID + ":" + strconv.Itoa(opts.Policy.KeyVersion)))
 				expectedID.Mod(expectedID, curve.Params().N)
 				value := new(big.Int).SetBytes(share.Value)
+				if opts.SolanaKeypair {
+					saved := *share
+					saved.Value = append([]byte(nil), share.Value...)
+					seedParts[response.NodeID] = saved
+				}
 				clear(share.Value)
 				if share.RequestDigest == digest && share.NodeID == response.NodeID && bytes.Equal(share.PublicKey, opts.Policy.PublicKey) && !seen[share.NodeID] && !ids[id.String()] && id.Cmp(expectedID) == 0 && id.Sign() > 0 && id.Cmp(curve.Params().N) < 0 && value.Sign() > 0 && value.Cmp(curve.Params().N) < 0 {
 					seen[share.NodeID] = true
 					ids[id.String()] = true
 					shares = append(shares, &recoveryShare{Threshold: opts.Policy.Threshold - 1, ID: id, Share: value})
+					if opts.SolanaKeypair && len(shares) >= opts.Policy.Threshold {
+						if private, e := RecoverSolanaKeypair(opts.Policy, seedParts, digest); e == nil {
+							return private, nil
+						}
+					}
 				} else {
 					value.SetInt64(0)
 				}
@@ -151,6 +173,15 @@ func ExportPrivateKey(ctx context.Context, nc *nats.Conn, signer Signer, opts Op
 	defer scalar.SetInt64(0)
 	if scalar.Sign() <= 0 || !bytes.Equal(PublicKey(opts.Policy.KeyType, scalar), opts.Policy.PublicKey) {
 		return nil, errors.New("reconstructed key does not match pinned public key")
+	}
+	if opts.SolanaKeypair {
+		defer func() {
+			for _, part := range seedParts {
+				clear(part.Value)
+				clear(part.SeedShare)
+			}
+		}()
+		return RecoverSolanaKeypair(opts.Policy, seedParts, digest)
 	}
 	return scalar.FillBytes(make([]byte, 32)), nil
 }

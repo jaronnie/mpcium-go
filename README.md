@@ -91,3 +91,10 @@ plaintext, err := client.DecryptStoredData(ctx, dataID)
 ## Agent skill
 
 [mpcium-sdk](skills/mpcium-sdk/SKILL.md) 以单个 `SKILL.md` 提供三个场景的调用示例、SDK v0.5.0 接入约定和错误排查说明。将该文件放入 agent 技能目录下的 `mpcium-sdk/SKILL.md`，使用 `$mpcium-sdk` 调用；示例不包含真实凭据。
+
+
+### Standard Solana wallets (v0.6.0)
+
+New console Solana wallets default to `standard` mode: the trusted console server generates a standard seed, encrypts two independent sets of 2-of-3 signing/recovery shares to the pinned nodes, then discards the full secret. Explicit `mpc` mode retains distributed generation and scalar-only export. Existing wallets and addresses are unchanged.
+
+`ExportWallet(ctx, walletID, types.KeyTypeEd25519)` still returns a 32-byte scalar. For a standard-mode wallet, use `ExportSolanaKeypair(ctx, walletID)` to recover a validated 64-byte seed+public-key keypair on the caller's machine. Base58-encode those bytes for private-key import into a compatible Solana wallet. Use `SignSolanaKeypair(privateKey, message)` for local signing; `SignSolanaMessage` retains its scalar-only semantics. Neither helper broadcasts transactions. The encrypted seed requires its independent recovery-share quorum; a single node cannot recover it. Standard-wallet resharing is refused until recovery-share migration is supported.

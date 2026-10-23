@@ -117,3 +117,16 @@ func ParseSolanaScalarBackup(data []byte) ([]byte, error) {
 	}
 	return scalar, nil
 }
+
+// SignSolanaKeypair signs locally using the 64-byte standard exported keypair.
+func SignSolanaKeypair(privateKey, message []byte) ([]byte, error) {
+	if len(privateKey) != ed25519.PrivateKeySize {
+		return nil, errors.New("expected standard 64-byte Solana keypair")
+	}
+	canonical := ed25519.NewKeyFromSeed(privateKey[:32])
+	defer clear(canonical)
+	if !bytes.Equal(canonical, privateKey) {
+		return nil, errors.New("Solana keypair public key mismatch")
+	}
+	return ed25519.Sign(canonical, message), nil
+}

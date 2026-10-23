@@ -28,6 +28,10 @@ type businessGroup struct {
 }
 
 func (c *mpcClient) business(ctx context.Context, operation, id string, data []byte, keyTypes ...types.KeyType) ([]byte, error) {
+	return c.businessWithKeypair(ctx, operation, id, data, false, keyTypes...)
+}
+
+func (c *mpcClient) businessWithKeypair(ctx context.Context, operation, id string, data []byte, wantKeypair bool, keyTypes ...types.KeyType) ([]byte, error) {
 	if c.natsConn == nil || c.signer == nil {
 		return nil, errors.New("SDK connection and identity required")
 	}
@@ -145,7 +149,7 @@ func (c *mpcClient) business(ctx context.Context, operation, id string, data []b
 		}
 		seen[response.NodeID] = true
 		if result.Share != nil {
-			sensitive = append(sensitive, result.Share.Value)
+			sensitive = append(sensitive, result.Share.Value, result.Share.SeedShare)
 		}
 		if result.Error != "" {
 			continue
@@ -178,7 +182,13 @@ func (c *mpcClient) business(ctx context.Context, operation, id string, data []b
 				return plain, nil
 			}
 		case "export-wallet":
-			secret, err := keyexport.RecoverBusiness(*group.result.Policy, group.shares, digest)
+			var secret []byte
+			var err error
+			if wantKeypair {
+				secret, err = keyexport.RecoverSolanaKeypair(*group.result.Policy, group.shares, digest)
+			} else {
+				secret, err = keyexport.RecoverBusiness(*group.result.Policy, group.shares, digest)
+			}
 			if err == nil {
 				return secret, nil
 			}
@@ -286,4 +296,10 @@ func (c *mpcClient) ExportWallet(ctx context.Context, walletID string, keyTypes 
 		keyTypes = []types.KeyType{types.KeyTypeSecp256k1}
 	}
 	return c.business(ctx, "export-wallet", walletID, nil, keyTypes...)
+}
+
+// ExportSolanaKeypair recovers the standard 64-byte seed+public-key keypair.
+// Only standard-mode wallets support this; ExportWallet retains scalar semantics.
+func (c *mpcClient) ExportSolanaKeypair(ctx context.Context, walletID string) ([]byte, error) {
+	return c.businessWithKeypair(ctx, "export-wallet", walletID, nil, true, types.KeyTypeEd25519)
 }

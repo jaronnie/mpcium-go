@@ -20,6 +20,7 @@ type MPCClient interface {
 	DecryptData(context.Context, string, []byte) ([]byte, error)
 	DecryptStoredData(context.Context, string) ([]byte, error)
 	ExportWallet(context.Context, string, ...types.KeyType) ([]byte, error)
+	ExportSolanaKeypair(context.Context, string) ([]byte, error)
 	// ExportPrivateKey is synchronous and returns raw secret bytes, never a remote signer.
 	ExportPrivateKey(context.Context, keyexport.Options) ([]byte, error)
 	CreateWalletAndExport(context.Context, string, WalletExportOptions) (*CreatedWalletExport, error)
